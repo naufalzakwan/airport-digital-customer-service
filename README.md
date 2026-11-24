@@ -1,29 +1,26 @@
 # Airport Digital Customer Service
 
-Sistem bantuan melalui panggilan video di jaringan lokal untuk simulasi layanan pelanggan bandara.
+Simulasi layanan pelanggan bandara melalui panggilan video di jaringan lokal.
 
-## Gambaran Umum
+## Tentang Proyek
 
-Airport Digital Customer Service mempertemukan penumpang yang membutuhkan bantuan dengan petugas layanan bandara. Penumpang menggunakan portal di perangkat seluler, sedangkan petugas menangani antrean dan meninjau riwayat panggilan dari Dashboard di laptop.
+Airport Digital Customer Service adalah proyek portofolio independen yang mendemonstrasikan layanan pelanggan bandara melalui jaringan lokal (LAN). Penumpang meminta bantuan dari ponsel, sementara petugas menangani antrean dan meninjau riwayat panggilan dari Dashboard di laptop.
 
-Setelah dependensi terpasang dan HTTPS lokal dikonfigurasi, aplikasi dapat berjalan tanpa akses internet selama kedua perangkat dapat saling terhubung melalui LAN. WebRTC dapat membangun koneksi langsung melalui jaringan tersebut. Server STUN publik yang dikonfigurasi memerlukan koneksi internet.
-
-## Penafian Proyek Portofolio
-
-Airport Digital Customer Service adalah proyek portofolio independen. Proyek ini tidak berafiliasi dengan perusahaan, bandara, atau operator bandara mana pun dan tidak mewakili layanan resmi mereka. Gunakan nama dan data layanan fiktif saat mendemonstrasikan aplikasi.
-
-Logo dan ikon aplikasi merupakan aset identitas proyek. Tangkapan layar digunakan untuk mendokumentasikan antarmuka. Periksa hak penggunaan dan izin pemilik aset sebelum menggunakan ulang gambar, logo, atau materi pihak lain.
+WebRTC menangani komunikasi audio dan video, Socket.IO mengelola antrean secara real-time, dan SQLite menyimpan riwayat serta hasil layanan. Proyek ini tidak berafiliasi dengan operator bandara atau perusahaan mana pun.
 
 ## Fitur Utama
 
-- Panggilan video satu lawan satu melalui WebRTC dengan audio Push-to-Talk.
-- Antrean waktu nyata melalui Socket.IO dan tombol **Accept Call** serta **Reject Call** di antarmuka petugas.
-- Akses petugas dengan kode yang diverifikasi oleh server serta **Logout / Ganti Petugas** untuk berganti identitas demo.
-- Penghitung lama menunggu berdasarkan waktu masuk antrean yang dicatat server. Tampilan diperbarui setiap detik dan durasi tetap dihitung dari waktu yang sama saat petugas berpindah tampilan atau koneksi tersambung kembali.
-- Antarmuka penumpang dalam bahasa Indonesia, Inggris, Prancis, Jepang, Arab (kanan ke kiri), dan Mandarin Sederhana.
-- Catatan layanan, penilaian penumpang, statistik Dashboard, dan riwayat **Recent Calls** dengan maksimal lima kartu per halaman.
-- Nomor referensi permanen berformat `CS-DDMMYY-NNN` dengan tombol **Copy ID**. Nomor urut dimulai ulang setiap hari berdasarkan zona waktu `Asia/Jakarta`.
-- Penyimpanan lokal untuk metadata panggilan, catatan, dan penilaian. Aplikasi tidak merekam audio maupun video panggilan.
+### Penumpang
+
+- Memilih kategori layanan melalui antarmuka yang tersedia dalam bahasa Indonesia, Inggris, Prancis, Jepang, Arab (kanan ke kiri), dan Tionghoa (aksara sederhana).
+- Memeriksa kamera, mikrofon, dan koneksi sebelum masuk antrean, melakukan panggilan video satu lawan satu dengan Push-to-Talk, lalu memberi penilaian setelah panggilan.
+
+### Petugas
+
+- Memantau antrean dan menerima atau menolak permintaan melalui **Accept Call** dan **Reject Call**. Waktu tunggu diperbarui setiap detik berdasarkan waktu masuk antrean yang dicatat server, termasuk setelah tampilan berganti atau koneksi tersambung kembali.
+- Menyimpan catatan layanan, melihat statistik Dashboard, dan menelusuri **Recent Calls** dengan maksimal lima panggilan per halaman.
+- Menyalin nomor referensi permanen `CS-DDMMYY-NNN` melalui **Copy ID**. Nomor urut dimulai dari awal setiap hari menurut zona waktu `Asia/Jakarta`.
+- Masuk dengan kode akses yang diverifikasi server dan berganti identitas demo melalui **Logout / Ganti Petugas** setelah panggilan aktif atau yang sudah direservasi selesai.
 
 ## Teknologi yang Digunakan
 
@@ -37,9 +34,9 @@ Logo dan ikon aplikasi merupakan aset identitas proyek. Tangkapan layar digunaka
 
 ## Arsitektur Sistem
 
-Peramban petugas membuka aplikasi melalui HTTP pada alamat loopback laptop. Peramban penumpang membuka aplikasi melalui HTTPS pada alamat IP LAN laptop. Setiap peramban mengirim permintaan Socket.IO ke origin halaman yang sedang dibuka. Vite meneruskan permintaan tersebut ke backend di `127.0.0.1:3000`.
+Petugas membuka aplikasi melalui HTTP pada alamat loopback laptop, sedangkan penumpang menggunakan HTTPS pada alamat IP LAN laptop. Vite meneruskan koneksi `/socket.io` dari kedua antarmuka ke backend di `127.0.0.1:3000` untuk antrean dan signaling WebRTC.
 
-Socket.IO mengelola antrean dan pertukaran pesan signaling untuk WebRTC. Setelah koneksi WebRTC terjalin, kedua peramban bertukar audio dan video secara langsung. Server menyimpan antrean aktif di memori serta metadata dan hasil layanan di SQLite.
+WebRTC mengirim audio dan video langsung antara kedua peramban. Antrean aktif disimpan di memori dan dikosongkan ketika backend dimulai ulang. SQLite menyimpan metadata panggilan, catatan, dan penilaian. Aplikasi tidak merekam audio atau video.
 
 ```text
 Peramban petugas (HTTP loopback)     Peramban penumpang (HTTPS LAN)
@@ -53,40 +50,37 @@ Peramban petugas (HTTP loopback)     Peramban penumpang (HTTPS LAN)
 Peramban petugas <------- media WebRTC -------> Peramban penumpang
 ```
 
-## Struktur Folder Proyek
+## Struktur Proyek
 
 ```text
 src/                 Antarmuka, hook WebRTC, dan kamus bahasa penumpang
 public/              Logo proyek dan ikon peramban
 server/              Express, antrean Socket.IO, dan penyimpanan SQLite
 server/tests/        Tes akses lokal, antrean, riwayat, dan bahasa
-screenshots/         Tangkapan layar yang ditinjau untuk galeri
+screenshots/         Tangkapan layar aplikasi
 vite.config.ts       HTTP/HTTPS pengembangan dan proksi Socket.IO
 .env.example         Templat konfigurasi opsional antarmuka
 server/.env.example  Templat konfigurasi backend lokal
 ```
 
-Dokumentasi Markdown selain `README.md` disimpan secara lokal dan dikecualikan dari publikasi di repositori.
+## Menjalankan Secara Lokal
 
-## Persyaratan Perangkat dan Perangkat Lunak
+### Persyaratan
 
-- Node.js 22.20 atau lebih baru pada seri 22, serta npm. Pengujian sebelumnya menggunakan Node.js 22.20.0 dan npm 10.9.3.
+- Node.js 22.20 atau lebih baru pada seri 22, npm, dan mkcert.
 - Laptop petugas dan perangkat penumpang dengan peramban yang mendukung WebRTC, kamera, serta mikrofon.
-- mkcert untuk membuat sertifikat HTTPS lokal.
 - LAN atau hotspot tepercaya yang memungkinkan kedua perangkat saling terhubung.
 
-## Instalasi
+### Instalasi Dependensi
 
-Jalankan kedua perintah berikut dari direktori utama proyek.
+Instal dependensi frontend dan backend dari direktori utama proyek.
 
 ```sh
 npm ci
 npm --prefix server ci
 ```
 
-Frontend dan backend masing-masing memiliki `package-lock.json`. Proyek ini menggunakan npm untuk memasang dependensi. Berkas pengunci dari pengelola paket sebelumnya dikecualikan dari repositori.
-
-## Konfigurasi HTTPS Lokal dengan mkcert
+### HTTPS Lokal dengan mkcert
 
 1. Gunakan CA mkcert yang sudah tersedia di laptop. Jika laptop belum memiliki CA lokal, jalankan `mkcert -install` untuk membuat dan memercayainya.
 2. Buat folder `certs/` di direktori utama proyek. Jalankan perintah berikut dan ganti `192.0.2.10` dengan alamat IPv4 LAN laptop saat ini.
@@ -98,7 +92,7 @@ Frontend dan backend masing-masing memiliki `package-lock.json`. Proyek ini meng
 3. Jika iPhone belum memercayai CA tersebut, gunakan `mkcert -CAROOT` untuk menemukan sertifikat publik `rootCA.pem`. Salin hanya sertifikat publik tersebut ke iPhone sebagai berkas `.crt`. Pasang profilnya melalui Pengaturan, lalu aktifkan kepercayaan penuh melalui **Pengaturan → Umum → Mengenai → Pengaturan Kepercayaan Sertifikat**.
 4. Buat ulang sertifikat pengembangan jika alamat IPv4 LAN laptop berubah. Simpan private key di laptop.
 
-## Konfigurasi Kode Akses Petugas
+### Kode Akses Petugas
 
 Untuk salinan proyek baru, salin `server/.env.example` ke `server/.env`. Gunakan perintah berikut jika memakai PowerShell.
 
@@ -106,13 +100,13 @@ Untuk salinan proyek baru, salin `server/.env.example` ke `server/.env`. Gunakan
 Copy-Item server/.env.example server/.env
 ```
 
-Isi `OFFICER_ACCESS_CODE` di `server/.env` dengan kode acak sepanjang 16–128 karakter. Gunakan pengelola kata sandi untuk membuat kode dan membagikannya hanya kepada petugas demo yang berwenang. Backend memverifikasi kode sebelum memberikan akses petugas.
+Isi `OFFICER_ACCESS_CODE` di `server/.env` dengan nilai acak sepanjang 16–128 karakter. Simpan berkas ini secara privat dan bagikan kode hanya kepada petugas demo yang berwenang.
 
-Untuk konfigurasi standar, biarkan backend menggunakan alamat loopback bawaan. Biarkan `CLIENT_ORIGIN` dan `VITE_SOCKET_URL` kosong agar peramban dapat menggunakan proksi Vite melalui origin halaman.
+Untuk konfigurasi standar, pertahankan alamat loopback backend dan biarkan `CLIENT_ORIGIN` serta `VITE_SOCKET_URL` kosong agar koneksi Socket.IO diteruskan melalui proksi Vite.
 
-## Cara Menjalankan Aplikasi
+### Memulai Layanan
 
-Jalankan tiap perintah di terminal terpisah dari direktori utama proyek.
+Gunakan tiga terminal dari direktori utama proyek. Jalankan satu perintah per terminal, dimulai dari backend.
 
 ```sh
 npm --prefix server start
@@ -120,24 +114,12 @@ npm run dev:https
 npm run dev -- --host 127.0.0.1 --port 5175
 ```
 
-Skrip `start` backend menjalankan Node.js dengan `--env-file=.env` dari direktori `server/`, sehingga konfigurasi dimuat dari `server/.env`. Backend menggunakan port 3000, portal penumpang HTTPS menggunakan port 5173, dan Dashboard petugas menggunakan port 5175. Jika port backend diubah, sesuaikan juga tujuan proksi Vite.
-
-## Akses Petugas dan Penumpang
+Perintah pertama menjalankan backend di port `3000` dan memuat `server/.env` melalui `--env-file=.env`. Jika port backend berubah, sesuaikan tujuan proksi di `vite.config.ts`.
 
 | Peran | Alamat | Akses awal |
 | --- | --- | --- |
-| Petugas | `http://localhost:5175/` di laptop | Masukkan nama demo dan kode akses petugas. |
-| Penumpang | `https://<LAPTOP_LAN_IP>:5173/` di perangkat penumpang | Ganti `<LAPTOP_LAN_IP>` dengan alamat IPv4 LAN laptop. Pilih bahasa dan kategori layanan, lalu periksa perangkat. |
-
-Alamat loopback menampilkan antarmuka petugas. Akses HTTPS melalui alamat LAN menampilkan antarmuka penumpang. Server memeriksa hak akses petugas secara terpisah dari pemilihan tampilan.
-
-## Alur Penggunaan Aplikasi
-
-1. Penumpang memasukkan nama demo, memilih bahasa dan kategori layanan, serta memeriksa kamera, mikrofon, dan koneksi sebelum masuk antrean.
-2. Petugas melihat permintaan masuk dan lama penumpang menunggu, lalu memilih **Accept Call** atau **Reject Call**.
-3. Jika panggilan diterima dan tersambung, petugas dan penumpang dapat menggunakan video serta menahan tombol Push-to-Talk saat berbicara.
-4. Setelah panggilan berakhir, petugas meninjau ringkasan dan menyimpan catatan layanan. Penumpang dapat memberikan penilaian. Petugas dapat membuka kembali riwayat dari **Recent Calls** dan menyalin nomor referensi melalui **Copy ID**.
-5. Untuk berganti identitas demo, gunakan **Pengaturan Akun → Logout / Ganti Petugas** setelah panggilan aktif atau panggilan yang sudah direservasi selesai.
+| Petugas | [http://localhost:5175/](http://localhost:5175/) | Buka di laptop, lalu masukkan nama demo dan kode akses. |
+| Penumpang | `https://<LAPTOP_LAN_IP>:5173/` | Ganti `<LAPTOP_LAN_IP>` dengan alamat IPv4 LAN laptop. Buka dari perangkat penumpang pada jaringan yang sama. |
 
 ## Galeri Tampilan Aplikasi
 
@@ -165,9 +147,11 @@ Alamat loopback menampilkan antarmuka petugas. Akses HTTPS melalui alamat LAN me
 
    <img src="screenshots/rating.webp" alt="Pilihan penilaian bintang setelah panggilan berakhir" width="300">
 
-## Pengujian yang Telah Dilakukan
+## Pengujian
 
-Jalankan pemeriksaan berikut dari direktori utama setelah dependensi frontend dan backend terpasang.
+Pada verifikasi dengan Node.js 22.20.0 dan npm 10.9.3, pemeriksaan TypeScript, build produksi, dan enam tes otomatis lulus. Tes mencakup kontrol akses petugas, signaling legacy, siklus antrean, riwayat dan nomor referensi panggilan, persistensi SQLite, serta kamus untuk enam bahasa. Tes signaling menggunakan data simulasi tanpa kamera atau mikrofon fisik.
+
+Untuk menjalankan pemeriksaan dari direktori utama setelah dependensi terpasang, gunakan perintah berikut.
 
 ```sh
 npm run typecheck
@@ -175,25 +159,10 @@ npm run build
 npm test
 ```
 
-Pemeriksaan TypeScript, build produksi, dan enam tes otomatis lulus pada verifikasi sebelum pembaruan dokumentasi ini. Tes otomatis meliputi kontrol akses lokal, signaling mode lama, siklus antrean, riwayat dan nomor referensi panggilan, persistensi SQLite, serta kamus antarmuka untuk enam bahasa. Tes menggunakan data simulasi dan mencakup signaling tanpa merekam keluaran langsung dari kamera atau mikrofon.
+## Keamanan dan Batasan Demo
 
-Untuk pemeriksaan manual, pilih bahasa dan masuk antrean sebagai penumpang. Terima panggilan sebagai petugas, akhiri panggilan, lalu periksa catatan petugas, penilaian penumpang, dan entri yang tersimpan di **Recent Calls**.
-
-## Keamanan dan Keterbatasan Sistem
-
-- Gunakan aplikasi untuk demo di LAN tepercaya dengan data fiktif. Aplikasi belum ditujukan untuk penggunaan produksi atau akses langsung dari internet. Hindari tunnel publik dan penerusan port.
-- Sesi petugas berlaku selama delapan jam. Identitas yang ditetapkan server tetap berlaku saat koneksi tersambung kembali. Logout mencabut sesi, dan perubahan kode akses membatalkan sesi lama setelah backend dimulai ulang.
-- Petugas berbagi kode untuk memperoleh peran petugas. Nama petugas dan penumpang adalah label demo, tanpa verifikasi akun perorangan. Petugas yang berwenang dapat melihat statistik Dashboard dan riwayat panggilan bersama.
-- Backend memeriksa origin peramban untuk permintaan polling dan WebSocket secara terpisah dari otorisasi sesi.
-- Basis data SQLite lokal tidak dienkripsi oleh aplikasi. SQLite dan penyimpanan peramban dapat memuat nama, catatan, penilaian, dan informasi sesi. Simpan data pengguna nyata, berkas `.env`, basis data SQLite, log, sertifikat HTTPS lokal, dan private key di luar repositori. Untuk kepercayaan HTTPS di perangkat penumpang, gunakan hanya sertifikat publik CA mkcert.
-- Antrean aktif di memori dikosongkan saat backend dimulai ulang. Riwayat yang sudah tersimpan tetap tersedia melalui SQLite.
-- Izin peramban, isolasi perangkat pada jaringan, atau firewall dapat menghalangi koneksi media. Aplikasi belum mengonfigurasi relai TURN.
-- Dukungan enam bahasa mencakup antarmuka penumpang. Percakapan suara berjalan dalam bahasa yang digunakan peserta.
-- Panggilan dengan laptop dan iPhone fisik belum dikonfirmasi ulang sejak pembaruan identitas visual.
-- Mode lama di `/legacy` khusus untuk uji panggilan langsung secara lokal. Signaling mode ini dinonaktifkan secara bawaan. Untuk mengujinya, atur `ENABLE_LEGACY=true` di `server/.env`, mulai ulang backend, lalu gunakan dua tab dengan alamat loopback. Daftar peserta mode lama terpisah dan tidak memiliki akses ke antrean atau riwayat panggilan.
-
-## Rencana Pengembangan Selanjutnya
-
-- Menambahkan autentikasi per akun dan otorisasi berbasis peran sebelum mempertimbangkan layanan publik.
-- Menetapkan kebijakan retensi dan penghapusan data, menambahkan pemantauan operasional, serta memperkuat keamanan penerapan.
-- Memperluas pengujian pada perangkat fisik dan peramban serta melengkapi galeri dengan tangkapan layar baru yang menggunakan data fiktif.
+- **Akses jaringan.** Aplikasi ditujukan untuk demo di LAN tepercaya dengan data fiktif. Hindari penggunaan produksi, tunnel publik, dan penerusan port ke internet.
+- **Sesi petugas.** Kode akses digunakan bersama dan nama tampilan berfungsi sebagai identitas demo. Sesi berlaku delapan jam, tetap berlaku saat koneksi tersambung kembali, dan dicabut saat logout. Mengubah kode lalu memulai ulang backend membatalkan sesi lama. Petugas yang berwenang dapat melihat riwayat dan statistik bersama. Backend memeriksa origin permintaan polling dan WebSocket secara terpisah dari otorisasi sesi.
+- **Data lokal.** SQLite tidak dienkripsi oleh aplikasi. Basis data dan penyimpanan peramban dapat memuat data sesi atau layanan. Simpan `.env`, basis data, log, sertifikat HTTPS lokal, private key, dan data pengguna nyata di luar repositori.
+- **Koneksi media.** Setelah dependensi terpasang dan HTTPS dikonfigurasi, dua perangkat yang saling terhubung di LAN dapat melakukan panggilan langsung tanpa internet. STUN publik memerlukan internet, dan aplikasi tidak menggunakan relai TURN. Firewall, isolasi perangkat di LAN, serta izin kamera atau mikrofon dapat memengaruhi panggilan. Pilihan bahasa berlaku untuk antarmuka penumpang, tanpa terjemahan percakapan.
+- **Mode legacy.** Signaling `/legacy` dinonaktifkan secara bawaan. Untuk uji panggilan langsung secara lokal, atur `ENABLE_LEGACY=true` di `server/.env`, mulai ulang backend, lalu buka dua tab melalui alamat loopback. Peserta legacy tidak memiliki akses ke antrean atau riwayat panggilan.
