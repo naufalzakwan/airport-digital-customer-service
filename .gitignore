@@ -67,6 +67,8 @@ certs/
 /.local-archive/
 /.release-check/
 /referensi_desain/
+# Keep source captures local. Publish reviewed images from /screenshots/.
+/src/screenshots/
 /bun.lockb
 /bun.lock
 /ngrok.exe
