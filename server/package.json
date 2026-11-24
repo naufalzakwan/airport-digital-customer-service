@@ -1,0 +1,27 @@
+{
+  "name": "video-call-signaling-server",
+  "version": "1.0.0",
+  "description": "WebRTC Signaling Server for 1:1 Video Call System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --env-file=.env server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "webrtc",
+    "signaling",
+    "socket.io",
+    "video-call"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
